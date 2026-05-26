@@ -1,0 +1,745 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0">
+<title>大袋鼠抖加激励实验 · 完整汇报</title>
+<script src="https://cdn.jsdelivr.net/npm/echarts@5.5.0/dist/echarts.min.js"></script>
+<style>
+*,*::before,*::after{margin:0;padding:0;box-sizing:border-box}
+:root{
+  --bg:#09080f;--bg2:#0f0d1a;--bg3:#151228;
+  --card:#121024;--card2:#1a1634;--card3:#221e42;
+  --text:#f1f5f9;--text2:#94a3b8;--text3:#64748b;
+  --purple:#7c3aed;--purple2:#a78bfa;--purple3:#c4b5fd;
+  --gold:#f59e0b;--gold2:#fbbf24;--gold3:#fcd34d;
+  --emerald:#10b981;--rose:#f43f5e;
+  --grad1:linear-gradient(135deg,#7c3aed,#f59e0b);
+  --grad2:linear-gradient(135deg,#a78bfa,#fbbf24);
+  --font:'Inter','Noto Sans SC','PingFang SC','Microsoft YaHei',sans-serif;
+  --font-mono:'JetBrains Mono','SF Mono','Fira Code',monospace;
+}
+html,body{height:100%;overflow:hidden}
+body{font-family:var(--font);background:var(--bg);color:var(--text);font-size:16px;line-height:1.7;-webkit-font-smoothing:antialiased}
+::selection{background:var(--purple);color:#fff}
+.slides-wrapper{height:100vh;width:100%;overflow:hidden;position:relative}
+.slides-track{display:flex;height:100%;transition:transform .6s cubic-bezier(.4,0,.2,1);will-change:transform}
+.slide{min-width:100%;height:100%;overflow-y:auto;display:flex;flex-direction:column;justify-content:center;padding:66px 5vw 56px;position:relative;scrollbar-width:thin;scrollbar-color:rgba(124,58,237,.2) transparent}
+.slide::-webkit-scrollbar{width:4px}
+.slide.hero{background:radial-gradient(ellipse at 20% 50%,rgba(124,58,237,.08),transparent 60%),radial-gradient(ellipse at 80% 50%,rgba(167,139,250,.06),transparent 60%),var(--bg)}
+
+/* ═══════════════════ BACKGROUND LAYERS ═══════════════════ */
+.slide::before{
+  content:'';position:absolute;top:0;left:0;right:0;bottom:0;
+  pointer-events:none;z-index:0;
+  opacity:0.5;
+  background:radial-gradient(ellipse at 70% 20%,rgba(124,58,237,.06),transparent 50%),
+             radial-gradient(ellipse at 30% 80%,rgba(245,158,11,.04),transparent 50%);
+  transition:opacity .8s ease;
+}
+.slide.bg-b::before{
+  opacity:0.45;
+  background:radial-gradient(ellipse at 80% 15%,rgba(124,58,237,.07),transparent 50%),
+             radial-gradient(ellipse at 20% 70%,rgba(167,139,250,.05),transparent 50%),
+             radial-gradient(ellipse at 50% 50%,rgba(6,182,212,.03),transparent 50%);
+}
+.slide::after{
+  content:'';position:absolute;top:0;left:0;right:0;bottom:0;
+  pointer-events:none;z-index:0;
+  opacity:.12;
+  background-image:url("data:image/svg+xml,%3Csvg viewBox='0 0 256 256' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='.85' numOctaves='4' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23n)'/%3E%3C/svg%3E");
+  background-repeat:repeat;background-size:256px 256px;
+  mix-blend-mode:overlay;
+}
+.slide .inner{position:relative;z-index:1;max-width:1100px;width:100%;margin:0 auto;flex:1;display:flex;flex-direction:column;justify-content:center}
+
+.slide-nav{position:fixed;left:0;right:0;bottom:0;z-index:1000;background:linear-gradient(0deg,rgba(9,8,15,.95),rgba(9,8,15,.7));padding:10px 4vw 14px;display:flex;align-items:center;justify-content:center;gap:8px;backdrop-filter:blur(12px)}
+.slide-nav .nav-arrow{width:36px;height:36px;border-radius:50%;background:rgba(255,255,255,.04);border:1px solid rgba(255,255,255,.06);color:var(--text);font-size:15px;cursor:pointer;display:flex;align-items:center;justify-content:center;transition:all .3s;flex-shrink:0}
+.slide-nav .nav-arrow:hover{background:rgba(124,58,237,.15);border-color:var(--purple)}
+.slide-nav .nav-arrow:disabled{opacity:.12;cursor:default;background:transparent}
+.slide-nav .dots{display:flex;gap:4px;align-items:center;max-width:260px;overflow-x:auto;padding:2px 0}
+.slide-nav .dot{width:6px;height:6px;border-radius:50%;background:rgba(255,255,255,.1);cursor:pointer;transition:all .3s;border:none;padding:0;flex-shrink:0}
+.slide-nav .dot:hover{background:rgba(124,58,237,.4)}
+.slide-nav .dot.active{width:18px;border-radius:3px;background:var(--purple)}
+.slide-nav .page-indicator{font-family:var(--font-mono);font-size:11px;color:var(--text3);min-width:44px;text-align:center}
+.slide-nav .nav-label{font-size:11px;color:var(--text2);max-width:160px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+
+.slide .tag{display:inline-block;font-family:var(--font-mono);font-size:11px;letter-spacing:3px;color:var(--purple2);margin-bottom:10px;border:1px solid rgba(167,139,250,.2);padding:4px 14px;border-radius:20px}
+.slide h1{font-size:clamp(32px,4vw,56px);font-weight:800;line-height:1.1;margin-bottom:12px;background:var(--grad1);-webkit-background-clip:text;-webkit-text-fill-color:transparent}
+.slide h2{font-size:clamp(20px,2.2vw,34px);font-weight:700;margin-bottom:5px;background:var(--grad1);-webkit-background-clip:text;-webkit-text-fill-color:transparent;display:inline-block;line-height:1.2}
+.slide .sub{font-size:15px;color:var(--text2);max-width:660px;margin-bottom:20px;line-height:1.6}
+.slide .meta{font-size:13px;color:var(--text3);letter-spacing:1px}
+.section-label{font-family:var(--font-mono);font-size:11px;letter-spacing:3px;color:var(--purple2);text-transform:uppercase;margin-bottom:4px}
+.section-desc{font-size:14px;color:var(--text2);max-width:660px;margin-bottom:18px;line-height:1.6}
+.slide.hero{background:radial-gradient(ellipse at 20% 50%,rgba(124,58,237,.08),transparent 60%),radial-gradient(ellipse at 80% 50%,rgba(167,139,250,.06),transparent 60%),var(--bg)}
+
+/* ═══════════════════ BACKGROUND LAYERS ═══════════════════ */
+.slide::before{
+  content:'';position:absolute;top:0;left:0;right:0;bottom:0;
+  pointer-events:none;z-index:0;
+  opacity:0.5;
+  background:radial-gradient(ellipse at 70% 20%,rgba(124,58,237,.06),transparent 50%),
+             radial-gradient(ellipse at 30% 80%,rgba(245,158,11,.04),transparent 50%);
+  transition:opacity .8s ease;
+}
+.slide.bg-b::before{
+  opacity:0.45;
+  background:radial-gradient(ellipse at 80% 15%,rgba(124,58,237,.07),transparent 50%),
+             radial-gradient(ellipse at 20% 70%,rgba(167,139,250,.05),transparent 50%),
+             radial-gradient(ellipse at 50% 50%,rgba(6,182,212,.03),transparent 50%);
+}
+.slide::after{
+  content:'';position:absolute;top:0;left:0;right:0;bottom:0;
+  pointer-events:none;z-index:0;
+  opacity:.12;
+  background-image:url("data:image/svg+xml,%3Csvg viewBox='0 0 256 256' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='.85' numOctaves='4' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23n)'/%3E%3C/svg%3E");
+  background-repeat:repeat;background-size:256px 256px;
+  mix-blend-mode:overlay;
+}
+.slide .inner{position:relative;z-index:1;max-width:1100px;width:100%;margin:0 auto;flex:1;display:flex;flex-direction:column;justify-content:center}
+.hero-stats{display:grid;grid-template-columns:repeat(4,1fr);gap:12px;margin-top:30px;max-width:900px}
+.hero-stat{background:var(--card);border-radius:12px;padding:16px 18px;border:1px solid rgba(255,255,255,.03);transition:transform .3s,border-color .3s}
+.hero-stat:hover{transform:translateY(-3px);border-color:rgba(124,58,237,.2)}
+.hero-stat .num{font-size:clamp(22px,1.8vw,32px);font-weight:700;line-height:1.2;background:var(--grad1);-webkit-background-clip:text;-webkit-text-fill-color:transparent}
+.hero-stat .num.gold{color:var(--gold);-webkit-text-fill-color:initial}
+.hero-stat .num.emerald{color:var(--emerald);-webkit-text-fill-color:initial}
+.hero-stat .num.rose{color:var(--rose);-webkit-text-fill-color:initial}
+.hero-stat .label{font-size:12px;color:var(--text2);margin-top:3px}
+.hero-stat .note{font-size:11px;color:var(--text3);margin-top:2px;line-height:1.4}
+
+.text-card{background:var(--card);border-radius:12px;padding:18px 22px;border:1px solid rgba(255,255,255,.03);margin-bottom:12px;transition:border-color .3s}
+.text-card:hover{border-color:rgba(124,58,237,.12)}
+.text-card .tc-title{font-weight:600;color:var(--purple3);margin-bottom:4px;font-size:14px}
+.text-card p{font-size:14px;color:var(--text2);line-height:1.7}
+.text-card .hl{color:var(--gold);font-weight:600}
+.text-card .hl-r{color:var(--rose);font-weight:600}
+.text-card .hl-g{color:var(--emerald);font-weight:600}
+.text-card .hl-b{color:var(--purple2);font-weight:600}
+
+.key-message{background:linear-gradient(135deg,rgba(124,58,237,.06),rgba(167,139,250,.03));border:1px solid rgba(124,58,237,.1);border-radius:14px;padding:22px 26px;position:relative;overflow:hidden;margin-bottom:18px}
+.key-message::before{content:'💬';position:absolute;top:8px;right:12px;font-size:32px;opacity:.08}
+.key-message .km-title{font-size:14px;font-weight:600;color:var(--purple2);margin-bottom:4px}
+.key-message .km-body{font-size:14px;color:var(--text2);line-height:1.8}
+.key-message .km-body strong{color:var(--text)}
+
+.grid-2{display:grid;grid-template-columns:1fr 1fr;gap:16px}
+.grid-3{display:grid;grid-template-columns:1fr 1fr 1fr;gap:14px}
+.grid-4{display:grid;grid-template-columns:repeat(4,1fr);gap:12px}
+
+.chart-box{background:var(--card);border-radius:12px;padding:16px 18px;border:1px solid rgba(255,255,255,.03)}
+.chart-box .chart-title{font-size:14px;font-weight:600;margin-bottom:3px;color:var(--text)}
+.chart-box .chart-sub{font-size:13px;color:var(--text2);margin-bottom:8px;line-height:1.5}
+.chart-box .chart-tools{display:flex;gap:6px;margin-bottom:8px;flex-wrap:wrap}
+.chart-box .chart-tools .btn{background:rgba(255,255,255,.03);border:1px solid rgba(255,255,255,.05);color:var(--text2);padding:4px 12px;border-radius:14px;cursor:pointer;font-family:var(--font);font-size:12px;transition:all .3s}
+.chart-box .chart-tools .btn:hover{background:rgba(124,58,237,.1);border-color:rgba(124,58,237,.2)}
+.chart-box .chart-tools .btn.active{background:rgba(124,58,237,.15);border-color:var(--purple);color:var(--purple3)}
+.chart-container{width:100%;height:360px}
+
+.table-wrapper{overflow:auto;background:var(--card);border-radius:12px;border:1px solid rgba(255,255,255,.03);max-height:400px}
+table.data-table{width:100%;border-collapse:collapse;font-size:13px}
+table.data-table th{background:rgba(124,58,237,.1);color:var(--purple3);padding:9px 7px;text-align:center;font-weight:600;font-size:12px;white-space:nowrap;border-bottom:1px solid rgba(255,255,255,.05);position:sticky;top:0;z-index:2;cursor:pointer;user-select:none}
+table.data-table th:hover{background:rgba(124,58,237,.18)}
+table.data-table td{padding:6px 7px;text-align:center;border-bottom:1px solid rgba(255,255,255,.02);transition:background .12s}
+table.data-table tr:hover td{background:rgba(124,58,237,.05)}
+table.data-table .sc{color:var(--emerald)}
+table.data-table .sm{color:var(--gold)}
+table.data-table .sa{color:var(--rose)}
+.table-info{font-size:12px;color:var(--text2);padding:7px 12px;border-top:1px solid rgba(255,255,255,.03);display:flex;justify-content:space-between;background:var(--card2)}
+
+.strategy-card{background:var(--card);border-radius:14px;padding:20px;border:1px solid rgba(255,255,255,.03);transition:transform .3s,border-color .3s}
+.strategy-card:hover{transform:translateY(-3px);border-color:rgba(124,58,237,.18)}
+.strategy-card .sc-icon{font-size:26px;margin-bottom:5px}
+.strategy-card .sc-name{font-size:15px;font-weight:700;margin-bottom:3px}
+.strategy-card .sc-desc{font-size:13px;color:var(--text2);line-height:1.6;margin-bottom:8px}
+.strategy-card .sc-stats{display:flex;gap:8px;flex-wrap:wrap}
+.strategy-card .sc-stat{flex:1;min-width:55px;text-align:center;background:rgba(255,255,255,.02);border-radius:8px;padding:7px 5px}
+.strategy-card .sc-stat .sc-num{font-size:16px;font-weight:700}
+.strategy-card .sc-stat .sc-lb{font-size:10px;color:var(--text2);margin-top:1px}
+.strategy-card .sc-example{font-size:11px;color:var(--text3);margin-top:6px;line-height:1.4}
+
+.case-card{background:var(--card);border-radius:14px;padding:22px;border:1px solid rgba(255,255,255,.03);display:flex;flex-direction:column;gap:12px}
+.case-card .cc-header{display:flex;align-items:center;gap:10px}
+.case-card .cc-icon{font-size:32px}
+.case-card .cc-tag{font-family:var(--font-mono);font-size:11px;letter-spacing:2px;padding:2px 10px;border-radius:10px;background:rgba(124,58,237,.1);color:var(--purple2)}
+.case-card .cc-name{font-size:18px;font-weight:700}
+.case-card .cc-timeline{display:flex;gap:12px;margin:4px 0}
+.case-card .cc-round{flex:1;background:rgba(255,255,255,.03);border-radius:10px;padding:12px;text-align:center}
+.case-card .cc-round .cr-label{font-size:11px;color:var(--text3);margin-bottom:4px}
+.case-card .cc-round .cr-bid{font-size:20px;font-weight:700}
+.case-card .cc-round .cr-pts{font-size:13px;color:var(--text2)}
+.case-card .cc-data{display:flex;gap:14px;flex-wrap:wrap}
+.case-card .cc-datum{flex:1;min-width:80px;text-align:center;padding:8px;background:rgba(255,255,255,.02);border-radius:8px}
+.case-card .cc-datum .cd-num{font-size:22px;font-weight:700;background:var(--grad1);-webkit-background-clip:text;-webkit-text-fill-color:transparent}
+.case-card .cc-datum .cd-num.gold{color:var(--gold);-webkit-text-fill-color:initial}
+.case-card .cc-datum .cd-num.rose{color:var(--rose);-webkit-text-fill-color:initial}
+.case-card .cc-datum .cd-lb{font-size:11px;color:var(--text2);margin-top:1px}
+.case-card .cc-quote{margin-top:4px;padding:10px 14px;background:rgba(255,255,255,.02);border-radius:8px;border-left:3px solid var(--purple);font-style:italic;font-size:13px;color:var(--text2);line-height:1.5}
+
+.assumption-card{background:var(--card);border-radius:12px;padding:16px;border:1px solid rgba(255,255,255,.03);transition:transform .3s;position:relative}
+.assumption-card:hover{transform:translateY(-2px)}
+.assumption-card .ac-num{font-family:var(--font-mono);font-size:12px;color:var(--purple2);margin-bottom:2px}
+.assumption-card .ac-statement{font-size:14px;font-weight:600;margin-bottom:4px}
+.assumption-card .ac-result{display:inline-block;font-size:12px;padding:2px 10px;border-radius:8px;margin-bottom:4px}
+.assumption-card .ac-result.pass{background:rgba(16,185,129,.1);color:var(--emerald)}
+.assumption-card .ac-result.partial{background:rgba(245,158,11,.1);color:var(--gold)}
+.assumption-card .ac-result.fail{background:rgba(244,63,94,.1);color:var(--rose)}
+.assumption-card .ac-evidence{font-size:12px;color:var(--text2);line-height:1.5}
+
+.highlight-row{display:flex;gap:12px;margin-top:8px;flex-wrap:wrap}
+.highlight-tag{background:rgba(124,58,237,.08);border:1px solid rgba(124,58,237,.12);border-radius:8px;padding:8px 12px;flex:1;min-width:120px}
+.highlight-tag .ht-num{font-size:18px;font-weight:700;color:var(--purple2)}
+.highlight-tag .ht-label{font-size:11px;color:var(--text2);margin-top:1px}
+.highlight-tag .ht-note{font-size:10px;color:var(--text3);margin-top:1px}
+
+.card-insight{background:linear-gradient(135deg,rgba(124,58,237,.06),rgba(167,139,250,.03));border-radius:12px;padding:20px;border:1px solid rgba(124,58,237,.08);margin-bottom:12px}
+.card-insight .ci-icon{font-size:22px;margin-bottom:3px}
+.card-insight .ci-title{font-weight:600;font-size:14px;margin-bottom:3px}
+.card-insight .ci-desc{font-size:13px;color:var(--text2);line-height:1.6}
+.card-insight .ci-stat{font-size:24px;font-weight:700;margin:5px 0 2px;display:inline-block}
+.card-insight .ci-stat.purple{background:var(--grad1);-webkit-background-clip:text;-webkit-text-fill-color:transparent}
+.card-insight .ci-stat.emerald{color:var(--emerald)}
+.card-insight .ci-stat.rose{color:var(--rose)}
+.card-insight .ci-stat.gold{color:var(--gold)}
+
+.finding-card{background:var(--card);border-radius:12px;padding:16px 14px;border:1px solid rgba(255,255,255,.03);text-align:center;transition:transform .3s}
+.finding-card:hover{transform:translateY(-2px)}
+.finding-card .fc-num{font-size:26px;font-weight:700;background:var(--grad1);-webkit-background-clip:text;-webkit-text-fill-color:transparent}
+.finding-card .fc-label{font-size:13px;font-weight:600;margin:4px 0 3px}
+.finding-card .fc-desc{font-size:12px;color:var(--text2);line-height:1.5}
+
+.comp-card{background:var(--card);border-radius:12px;padding:18px;border-left:3px solid var(--purple);margin-bottom:10px}
+.comp-card.success{border-left-color:var(--emerald)}
+.comp-card.danger{border-left-color:var(--rose)}
+.comp-card .comp-title{font-weight:600;font-size:14px;margin-bottom:2px}
+.comp-card .comp-desc{font-size:13px;color:var(--text2);line-height:1.6}
+.comp-card .comp-stat{font-family:var(--font-mono);font-size:20px;font-weight:700;margin:4px 0 2px}
+.comp-card.success .comp-stat{color:var(--emerald)}
+.comp-card.danger .comp-stat{color:var(--rose)}
+
+.divider{height:1px;background:linear-gradient(90deg,transparent,rgba(255,255,255,.04),transparent);margin:16px 0}
+
+.scene-card{background:var(--card);border-radius:14px;padding:20px;border:1px solid rgba(255,255,255,.03);text-align:center;transition:transform .3s}
+.scene-card:hover{transform:translateY(-3px);border-color:rgba(124,58,237,.15)}
+.scene-card .sc-icon{font-size:36px;margin-bottom:6px}
+.scene-card .sc-title{font-size:15px;font-weight:600;margin-bottom:3px}
+.scene-card .sc-desc{font-size:13px;color:var(--text2)}
+
+.formula-box{background:var(--card2);border-radius:12px;padding:20px;text-align:center;border:1px solid rgba(255,255,255,.04);margin-bottom:12px}
+.formula-box .fb-label{font-size:12px;color:var(--text3);margin-bottom:4px}
+.formula-box .fb-formula{font-family:var(--font-mono);font-size:22px;font-weight:700;color:var(--gold);margin-bottom:6px}
+.formula-box .fb-desc{font-size:13px;color:var(--text2);line-height:1.5}
+.formula-box .fb-example{margin-top:8px;padding:8px 12px;background:rgba(255,255,255,.03);border-radius:8px;font-size:12px;color:var(--text2)}
+
+.advice-card{background:var(--card);border-radius:14px;padding:24px;border:1px solid rgba(255,255,255,.03);text-align:center;transition:transform .3s}
+.advice-card:hover{transform:translateY(-3px);border-color:rgba(124,58,237,.15)}
+.advice-card .ac-icon{font-size:34px;margin-bottom:6px}
+.advice-card .ac-title{font-size:17px;font-weight:700;margin-bottom:4px}
+.advice-card .ac-desc{font-size:13px;color:var(--text2);line-height:1.6;max-width:480px;margin:0 auto}
+
+@media(max-width:860px){
+  .grid-2,.grid-3,.grid-4{grid-template-columns:1fr}
+  .hero-stats{grid-template-columns:repeat(2,1fr)}
+  .slide{padding:54px 4vw 50px}
+  .slide-nav .nav-label{display:none}
+  .chart-container{height:280px}
+  .case-card .cc-timeline{flex-direction:column}
+  .slide-nav .dots{max-width:160px}
+}
+@media(max-width:600px){
+  body{font-size:15px}
+  .slide h1{font-size:26px}
+  .hero-stats{grid-template-columns:1fr 1fr}.hero-stat{padding:12px 14px}
+  .chart-container{height:240px}
+  table.data-table td,table.data-table th{font-size:11px;padding:4px 3px}
+}
+
+/* ═══════════════════ ANIMATIONS ═══════════════════ */
+@keyframes slideInLeft{
+  from{opacity:0;transform:translateX(-40px)}
+  to{opacity:1;transform:translateX(0)}
+}
+@keyframes slideInBottom{
+  from{opacity:0;transform:translateY(32px)}
+  to{opacity:1;transform:translateY(0)}
+}
+@keyframes fadeIn{
+  from{opacity:0}
+  to{opacity:1}
+}
+@keyframes scaleIn{
+  from{opacity:0;transform:scale(0.92)}
+  to{opacity:1;transform:scale(1)}
+}
+@keyframes cardHover{
+  0%{box-shadow:0 2px 8px rgba(0,0,0,.2)}
+  100%{box-shadow:0 12px 32px rgba(124,58,237,.15);transform:translateY(-4px)}
+}
+.slide .inner>*{opacity:0}
+.slide.anim-in .inner>.section-label{animation:slideInLeft .7s cubic-bezier(.25,.46,.45,.94) .08s forwards}
+.slide.anim-in .inner>h1,.slide.anim-in .inner>h2{animation:slideInBottom .8s cubic-bezier(.25,.46,.45,.94) .15s forwards}
+.slide.anim-in .inner>.tag{animation:scaleIn .6s cubic-bezier(.25,.46,.45,.94) .08s forwards}
+.slide.anim-in .inner>.sub,.slide.anim-in .inner>.section-desc,.slide.anim-in .inner>.meta{animation:fadeIn .7s ease-out .3s forwards}
+.slide.anim-in .inner>.key-message,.slide.anim-in .inner>.hero-stats,.slide.anim-in .inner>.grid-2,.slide.anim-in .inner>.grid-3,.slide.anim-in .inner>.grid-4,.slide.anim-in .inner>.chart-box,.slide.anim-in .inner>.table-wrapper,.slide.anim-in .inner>.formula-box,.slide.anim-in .inner>.card-insight,.slide.anim-in .inner>.highlight-row{animation:slideInBottom .8s cubic-bezier(.25,.46,.45,.94) .4s forwards}
+.slide.anim-in .inner>.grid-2>*,.slide.anim-in .inner>.grid-3>*{opacity:0;animation:slideInBottom .7s cubic-bezier(.25,.46,.45,.94) .45s forwards}
+.slide.anim-in .inner>.grid-2>*:nth-child(2),.slide.anim-in .inner>.grid-3>*:nth-child(2){animation-delay:.55s}
+.slide.anim-in .inner>.grid-2>*:nth-child(3),.slide.anim-in .inner>.grid-3>*:nth-child(3){animation-delay:.65s}
+.slide.anim-in .inner>.grid-2>*:nth-child(4),.slide.anim-in .inner>.grid-3>*:nth-child(4){animation-delay:.75s}
+.slide.anim-in .inner>.comp-card,.slide.anim-in .inner>.advice-card,.slide.anim-in .inner>.finding-card,.slide.anim-in .inner>.assumption-card{animation:slideInBottom .7s cubic-bezier(.25,.46,.45,.94) .45s forwards}
+.slide.anim-in .inner>.comp-card:nth-child(2),.slide.anim-in .inner>.finding-card:nth-child(2){animation-delay:.55s}
+.slide.anim-in .inner>.comp-card:nth-child(3),.slide.anim-in .inner>.finding-card:nth-child(3){animation-delay:.65s}
+.slide.anim-in .inner>.divider{animation:scaleIn .6s ease-out .4s forwards}
+
+/* 卡片悬停增强 */
+.strategy-card,.case-card,.finding-card,.assumption-card,.advice-card,.text-card,.stat-card,.hero-stat,.chart-box{transition:transform .5s cubic-bezier(.25,.46,.45,.94),box-shadow .5s ease,border-color .4s ease}
+.strategy-card:hover,.case-card:hover{transform:translateY(-5px);box-shadow:0 12px 32px rgba(124,58,237,.12)}
+.finding-card:hover,.advice-card:hover{transform:translateY(-3px);box-shadow:0 8px 24px rgba(124,58,237,.1)}
+.hero-stat:hover{transform:translateY(-4px);box-shadow:0 8px 24px rgba(124,58,237,.1)}
+</style>
+</head>
+<body>
+<div class="slides-wrapper">
+<div class="slides-track" id="slidesTrack">
+
+<!-- ═══════ S1 封面 ═══════ -->
+<section class="slide hero" data-slide="0">
+  <div class="inner">
+    <div class="tag">📱 抖音流量激励实验</div>
+    <h1>你愿意为<br>一个冠军投多少钱？</h1>
+    <p class="sub">一个关于"发视频·赚流量·赢奖金"的课堂实验——看看大家面对现金奖励时，到底舍不舍得花钱买抖加。</p>
+    <div class="meta">团队：大袋鼠（第一组） · 经济与贸易综合实验 · 2026.5</div>
+    <div class="hero-stats">
+      <div class="hero-stat"><div class="num">29</div><div class="label">参与人数</div><div class="note">全班自愿参与，匿名独立决策</div></div>
+      <div class="hero-stat"><div class="num gold">400分</div><div class="label">最高得分</div><div class="note">#15同学两轮全押成功</div></div>
+      <div class="hero-stat"><div class="num rose">0.2分</div><div class="label">最低得分</div><div class="note">#27同学投入999元近乎零分</div></div>
+      <div class="hero-stat"><div class="num emerald">0.35</div><div class="label">Gini系数</div><div class="note">越接近1越不平等，0.4是国际警戒线</div></div>
+    </div>
+  </div>
+</section>
+
+<!-- ═══════ S2 生活场景引入 NEW ═══════ -->
+<section class="slide" data-slide="1">
+  <div class="inner">
+    <div class="section-label">🤔 先想一个问题</div>
+    <h2>你在生活里遇到过多少次<br>"赢者通吃"？</h2>
+    <p class="section-desc">停下来想一想——这些场景，你是不是很熟悉？</p>
+    <div class="grid-3">
+      <div class="scene-card"><div class="sc-icon">📝</div><div class="sc-title">小组作业</div><div class="sc-desc">全组辛辛苦苦做了一周，最后只有一个人上去汇报展示、拿到高分——其他人默默看。</div></div>
+      <div class="scene-card"><div class="sc-icon">🏢</div><div class="sc-title">求职面试</div><div class="sc-desc">几十个人投同一个岗位，每个人都精心准备，最后只有一个人拿到offer。</div></div>
+      <div class="scene-card"><div class="sc-icon">🏆</div><div class="sc-title">选秀比赛</div><div class="sc-desc">几百个人海选，几个月的激烈比拼，最后冠军只有一个——第二名和最后一名，结果一样。</div></div>
+    </div>
+    <div class="key-message" style="margin-top:12px">
+      <div class="km-title">🎯 这个实验就是模拟这个场景</div>
+      <div class="km-body">全班29人一起发抖音视频，<strong>谁的播放量最高谁拿现金奖励</strong>。但是——<strong>你可以自己花钱投抖加来冲流量</strong>。投了不一定赢，不投又怕别人超过你。你会怎么选？</div>
+    </div>
+  </div>
+</section>
+
+<!-- ═══════ S3 实验核心 ═══════ -->
+<section class="slide" data-slide="2">
+  <div class="inner">
+    <div class="section-label">🧪 实验怎么玩的</div>
+    <h2>简单说就是</h2>
+    <p class="section-desc">29人 · 2轮独立决策 · 每轮500元预算</p>
+    <div class="grid-2">
+      <div class="text-card"><div class="tc-title">🎲 决策规则</div><p>每人每轮有 <span class="hl">500元抖加预算</span>（实验里用代币代替）。自己决定：投多少钱买抖加？投多了可能白花，不投可能被超过。一共玩 <span class="hl">两轮</span>，两轮得分加总排定最终名次。</p></div>
+      <div class="text-card"><div class="tc-title">💰 得分公式</div><p>得分 = <span class="hl-g">没花掉的预算×20%</span> + <span class="hl-b">抖加投出去赚到的流量分</span><br><strong style="color:var(--emerald)">不投→稳拿100分保底</strong> vs <strong style="color:var(--rose)">投了→可能翻倍也可能血亏</strong></p></div>
+    </div>
+  </div>
+</section>
+
+<!-- ═══════ S4 得分公式解密 NEW ═══════ -->
+<section class="slide" data-slide="3" style="background:var(--bg2)">
+  <div class="inner">
+    <div class="section-label">🔢 算一笔账</div>
+    <h2>为什么"不投"这么稳？</h2>
+    <p class="section-desc">公式看起来很抽象，我们来算两笔具体的账。</p>
+    <div class="grid-2">
+      <div class="formula-box">
+        <div class="fb-label">🛡️ 场景一：一分不投</div>
+        <div class="fb-formula" style="color:var(--emerald)">500 × 20% + 0 = 100分</div>
+        <div class="fb-desc">预算全部保留，稳稳拿到100分。虽然不高，但一分不少。</div>
+        <div class="fb-example">✅ 代表：#1号同学——两轮不投，200分，排名第3</div>
+      </div>
+      <div class="formula-box">
+        <div class="fb-label">💥 场景二：全部投进去</div>
+        <div class="fb-formula" style="color:var(--gold)">0 × 20% + 竞得代币 = ?</div>
+        <div class="fb-desc">一分预算都不剩，完全靠"竞得代币"得分。要么赚翻，要么归零。</div>
+        <div class="fb-example">⚠️ 竞中→400分(#15) · 竞不中→0.2分(#27)</div>
+      </div>
+    </div>
+    <div class="key-message" style="margin-top:12px">
+      <div class="km-title">💡 关键理解</div>
+      <div class="km-body">想超过"不投"的100分保底？你得至少 <strong>竞得100元代币</strong>才行。但29个人里，每轮只有 <strong>1-2个人</strong>能竞中——这就是个"高风险低概率"的赌局。</div>
+    </div>
+  </div>
+</section>
+
+<!-- ═══════ S5 四个假设 NEW ═══════ -->
+<section class="slide" data-slide="4">
+  <div class="inner">
+    <div class="section-label">📋 实验前我们猜了四件事</div>
+    <h2>四个假设，你觉得对吗？</h2>
+    <p class="section-desc">做实验之前，我们根据经济学理论提出了四个假设。先看看你的直觉准不准，答案在后面揭晓。</p>
+    <div class="grid-2">
+      <div class="assumption-card"><div class="ac-num">假设 ①</div><div class="ac-statement">奖金越高，大家投入的抖加金额越高</div><div class="ac-result partial">待验证</div><div class="ac-evidence">这是锦标赛理论的核心预测——奖励越大，竞争越激烈。</div></div>
+      <div class="assumption-card"><div class="ac-num">假设 ②</div><div class="ac-statement">风险偏好越高的人，投入越高</div><div class="ac-result partial">待验证</div><div class="ac-evidence">胆子大的人更愿意"搏一把"——但结果呢？</div></div>
+      <div class="assumption-card"><div class="ac-num">假设 ③</div><div class="ac-statement">觉得别人会多投的人，自己也会投更多</div><div class="ac-result partial">待验证</div><div class="ac-evidence">"怕被别人比下去"的心理会不会推高投入？</div></div>
+      <div class="assumption-card"><div class="ac-num">假设 ④</div><div class="ac-statement">随着奖金提升，会出现"投入超奖金"的非理性行为</div><div class="ac-result partial">待验证</div><div class="ac-evidence">这就是著名的"赢者诅咒"——赌红了眼，投入比奖金还多。</div></div>
+    </div>
+    <div style="text-align:center;margin-top:10px;color:var(--text3);font-size:13px">⏳ 先记住这四个假设，后面我们一一验证</div>
+  </div>
+</section>
+
+<!-- ═══════ S6 全员数据表 ═══════ -->
+<section class="slide bg-b" data-slide="5" style="background:var(--bg2)">
+  <div class="inner">
+    <div class="section-label">📊 6 · 全员数据</div>
+    <h2>29位同学的选择</h2>
+    <p class="section-desc">点击表头可排序。🟢绿=保守·🟡金=温和·🔴红=激进。三个亮点先记住：</p>
+    <div class="highlight-row" style="margin-bottom:10px">
+      <div class="highlight-tag"><div class="ht-num">#1</div><div class="ht-label">一分没花，排名第3</div><div class="ht-note">印证：不投不一定差</div></div>
+      <div class="highlight-tag" style="border-color:rgba(245,158,11,.12)"><div class="ht-num" style="color:var(--gold)">#19</div><div class="ht-label">先守后攻→翻盘</div><div class="ht-note">最优策略：先保底再冲刺</div></div>
+      <div class="highlight-tag" style="border-color:rgba(244,63,94,.12)"><div class="ht-num" style="color:var(--rose)">#27</div><div class="ht-label">投入999元，得0.2分</div><div class="ht-note">警惕：盲目全押最危险</div></div>
+    </div>
+    <div class="table-wrapper">
+      <table class="data-table" id="dataTable"><thead><tr>
+        <th onclick="sortTable(0)">排名 ↕</th><th onclick="sortTable(1)">编号 ↕</th><th onclick="sortTable(2)">R1抖加 ↕</th><th onclick="sortTable(3)">R1得分 ↕</th><th onclick="sortTable(4)">R2抖加 ↕</th><th onclick="sortTable(5)">R2得分 ↕</th><th onclick="sortTable(6)">总投入 ↕</th><th onclick="sortTable(7)">总得分 ↕</th><th onclick="sortTable(8)">预算剩 ↕</th><th>策略</th>
+      </tr></thead>
+      <tbody id="tableBody"></tbody></table>
+      <div class="table-info"><span>🟢保守(投≤100) · 🟡温和(100-500) · 🔴激进(≥500)</span><span id="tableCount"></span></div>
+    </div>
+  </div>
+</section>
+
+<!-- ═══════ S7 三种策略 ═══════ -->
+<section class="slide bg-b" data-slide="6">
+  <div class="inner">
+    <div class="section-label">🎭 7 · 三种人三种命</div>
+    <h2>面对"投不投抖加"，<br>同学分成了三派</h2>
+    <p class="section-desc">猜猜哪一派最后赢了？</p>
+    <div class="grid-3">
+      <div class="strategy-card" style="border-top:3px solid var(--emerald)">
+        <div class="sc-icon">🛡️</div><div class="sc-name" style="color:var(--emerald)">保守派 · 我就不投</div>
+        <div class="sc-desc">两轮几乎不花钱投抖加，留着预算稳稳拿分。虽然拿不到冠军，但稳定输出。</div>
+        <div class="sc-stats"><div class="sc-stat"><div class="sc-num" style="color:var(--emerald)">6人</div><div class="sc-lb">人数</div></div><div class="sc-stat"><div class="sc-num" style="color:var(--emerald)">190.6分</div><div class="sc-lb">平均分</div></div><div class="sc-stat"><div class="sc-num" style="color:var(--emerald)">第6名</div><div class="sc-lb">平均排名</div></div></div>
+        <div class="sc-example">🏆 代表：#1号 · 200分 · 排名第3</div>
+      </div>
+      <div class="strategy-card" style="border-top:3px solid var(--gold)">
+        <div class="sc-icon">⚡</div><div class="sc-name" style="color:var(--gold)">聪明派 · 先守再攻</div>
+        <div class="sc-desc">第一轮不动拿下基础分，第二轮砸预算去赌——博中血赚，博输不亏。</div>
+        <div class="sc-stats"><div class="sc-stat"><div class="sc-num" style="color:var(--gold)">5人</div><div class="sc-lb">人数</div></div><div class="sc-stat"><div class="sc-num" style="color:var(--gold)">160.4分</div><div class="sc-lb">平均分</div></div><div class="sc-stat"><div class="sc-num" style="color:var(--gold)">第9名</div><div class="sc-lb">平均排名</div></div></div>
+        <div class="sc-example">🏆 代表：#19号 · R1不动→R2全押搏中 · 200分 · 第3名</div>
+      </div>
+      <div class="strategy-card" style="border-top:3px solid var(--rose)">
+        <div class="sc-icon">💥</div><div class="sc-name" style="color:var(--rose)">激进派 · 全力押注</div>
+        <div class="sc-desc">两轮全部预算砸进去投抖加。要么冠军，要么血本无归。勇气可嘉，但多数人惨败。</div>
+        <div class="sc-stats"><div class="sc-stat"><div class="sc-num" style="color:var(--rose)">18人</div><div class="sc-lb">人数</div></div><div class="sc-stat"><div class="sc-num" style="color:var(--rose)">98.5分</div><div class="sc-lb">平均分</div></div><div class="sc-stat"><div class="sc-num" style="color:var(--rose)">第20名</div><div class="sc-lb">平均排名</div></div></div>
+        <div class="sc-example">🏆 代表：#15全押搏中400分第1名，但更多人惨淡收场</div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- ═══════ S8 #1号案例 NEW ═══════ -->
+<section class="slide bg-b" data-slide="7" style="background:var(--bg2)">
+  <div class="inner">
+    <div class="section-label">🛡️ 8 · 案例一</div>
+    <h2>#1号：一分没花，排名第3</h2>
+    <p class="section-desc">29人里出价最少的同学之一，却拿到了全场第3的好成绩。</p>
+    <div class="grid-2">
+      <div class="case-card">
+        <div class="cc-header"><div class="cc-icon">🛡️</div><div class="cc-tag" style="background:rgba(16,185,129,.1);color:var(--emerald)">保守派</div><div class="cc-name">#1号同学</div></div>
+        <div class="cc-timeline">
+          <div class="cc-round"><div class="cr-label">第一轮</div><div class="cr-bid" style="color:var(--emerald)">投 0 元</div><div class="cr-pts">得 100 分</div></div>
+          <div class="cc-round"><div class="cr-label">第二轮</div><div class="cr-bid" style="color:var(--emerald)">投 0 元</div><div class="cr-pts">得 100 分</div></div>
+        </div>
+        <div class="cc-data"><div class="cc-datum"><div class="cd-num emerald">0元</div><div class="cd-lb">总投入</div></div><div class="cc-datum"><div class="cd-num">200分</div><div class="cd-lb">总得分</div></div><div class="cc-datum"><div class="cd-num gold">第3名</div><div class="cd-lb">最终排名</div></div></div>
+        <div class="cc-quote">"我不投抖加，我想看看靠内容本身能不能赢。结果——不投的人，往往才是笑到最后的。"</div>
+      </div>
+      <div style="display:flex;flex-direction:column;gap:10px;justify-content:center">
+        <div class="card-insight"><div class="ci-icon">💡</div><div class="ci-title">核心启示</div><div class="ci-desc">在这个游戏里，<span class="hl-g">"不出手"比"乱出手"重要得多</span>。6个保守派平均排名第6，超过了19个激进派的大部分人。不做什么，比做什么更需要定力。</div></div>
+        <div class="card-insight" style="background:linear-gradient(135deg,rgba(16,185,129,.06),rgba(167,139,250,.03))"><div class="ci-icon">📊</div><div class="ci-title">数据的说服力</div><div class="ci-desc">总预算1000元，一分没花，全部保留。按得分公式：<span class="hl">1000×20%=200分</span>。这就是"不做决策的决策"——稳住了就是胜利。</div></div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- ═══════ S9 #19号案例 NEW ═══════ -->
+<section class="slide bg-b" data-slide="8">
+  <div class="inner">
+    <div class="section-label">⚡ 9 · 案例二</div>
+    <h2>#19号：先守后攻，精准翻盘</h2>
+    <p class="section-desc">一种更聪明的策略——先确保不败，再寻找胜机。</p>
+    <div class="grid-2">
+      <div class="case-card" style="border-color:rgba(245,158,11,.1)">
+        <div class="cc-header"><div class="cc-icon">⚡</div><div class="cc-tag" style="background:rgba(245,158,11,.1);color:var(--gold)">聪明派</div><div class="cc-name">#19号同学</div></div>
+        <div class="cc-timeline">
+          <div class="cc-round" style="background:rgba(16,185,129,.06)"><div class="cr-label">第一轮 · 防守</div><div class="cr-bid" style="color:var(--emerald)">投 0 元</div><div class="cr-pts">得 100 分 ✅ 保底到手</div></div>
+          <div class="cc-round" style="background:rgba(245,158,11,.06)"><div class="cr-label">第二轮 · 进攻</div><div class="cr-bid" style="color:var(--gold)">投 500 元</div><div class="cr-pts">得 100 分 🎯 搏中了！</div></div>
+        </div>
+        <div class="cc-data"><div class="cc-datum"><div class="cd-num gold">500元</div><div class="cd-lb">总投入</div></div><div class="cc-datum"><div class="cd-num">200分</div><div class="cd-lb">总得分</div></div><div class="cc-datum"><div class="cd-num gold">第3名</div><div class="cd-lb">最终排名</div></div></div>
+        <div class="cc-quote">"第一轮先不动，看看大家什么水平。第二轮我有底了，赌一把——赢了就赚，输了还有第一轮的100分保底。"</div>
+      </div>
+      <div style="display:flex;flex-direction:column;gap:10px;justify-content:center">
+        <div class="card-insight"><div class="ci-icon">💡</div><div class="ci-title">为什么这是最优策略？</div><div class="ci-desc">5个"先守后攻"的人平均160.4分，排名第9。比保守派稍低，但比激进派高出62%。关键是——<span class="hl">先锁定基础收益，再用输得起的筹码去博超额收益</span>。</div></div>
+        <div class="card-insight" style="background:linear-gradient(135deg,rgba(245,158,11,.06),rgba(167,139,250,.03))"><div class="ci-icon">📊</div><div class="ci-title">风险管理的智慧</div><div class="ci-desc">如果#19第二轮搏输了：得分 = 100(R1) + 0(R2) = 100分，仍然有排名中游的资本。<span class="hl-g">有保障的冒险，才是最聪明的冒险</span>。</div></div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- ═══════ S10 #27号案例 NEW ═══════ -->
+<section class="slide bg-b" data-slide="9" style="background:var(--bg2)">
+  <div class="inner">
+    <div class="section-label">💥 10 · 案例三</div>
+    <h2>#27号：盲目全押，几乎零分</h2>
+    <p class="section-desc">最令人惋惜的案例——不是不努力，而是努力错了方向。</p>
+    <div class="grid-2">
+      <div class="case-card" style="border-color:rgba(244,63,94,.12)">
+        <div class="cc-header"><div class="cc-icon">💥</div><div class="cc-tag" style="background:rgba(244,63,94,.1);color:var(--rose)">激进派</div><div class="cc-name">#27号同学</div></div>
+        <div class="cc-timeline">
+          <div class="cc-round" style="background:rgba(244,63,94,.06)"><div class="cr-label">第一轮 · 全押</div><div class="cr-bid" style="color:var(--rose)">投 500 元</div><div class="cr-pts">得 0 分 ❌ 一分未得</div></div>
+          <div class="cc-round" style="background:rgba(244,63,94,.06)"><div class="cr-label">第二轮 · 再押</div><div class="cr-bid" style="color:var(--rose)">投 499 元</div><div class="cr-pts">得 0.2 分 ❌ 近乎归零</div></div>
+        </div>
+        <div class="cc-data"><div class="cc-datum"><div class="cd-num rose">999元</div><div class="cd-lb">总投入</div></div><div class="cc-datum"><div class="cd-num rose">0.2分</div><div class="cd-lb">总得分</div></div><div class="cc-datum"><div class="cd-num rose">第29名</div><div class="cd-lb">最终排名</div></div></div>
+        <div class="cc-quote">"第一轮输了我不甘心，第二轮我想着再押大一点一定能赢回来——结果……什么都没了。"</div>
+      </div>
+      <div style="display:flex;flex-direction:column;gap:10px;justify-content:center">
+        <div class="card-insight"><div class="ci-icon">⚠️</div><div class="ci-title">"加倍挽回"的陷阱</div><div class="ci-desc">#27号的行为是行为经济学里的经典谬误——<span class="hl-r">沉没成本谬误</span>：因为已经输了，所以不甘心收手，反而加大投入想"捞回来"。实验结果证明：越捞越输。</div></div>
+        <div class="comp-card success"><div class="comp-stat">100分</div><div class="comp-title">✅ 和他相反的选择</div><div class="comp-desc">5个R1输了、R2及时收手的同学——全部在R2拿到100分全额保底，成功翻盘。</div></div>
+        <div class="comp-card danger"><div class="comp-stat">35.1分</div><div class="comp-title">❌ 和他一样的选择</div><div class="comp-desc">R1输了、R2继续加码的同学——第二轮平均只有35分，越输越多。</div></div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- ═══════ S11 投入vs得分 ═══════ -->
+<section class="slide bg-b" data-slide="10">
+  <div class="inner">
+    <div class="section-label">📈 11 · 反常识发现</div>
+    <h2>投得越多，赚得越少？</h2>
+    <p class="section-desc">一个让所有人都没想到的发现。</p>
+    <div class="chart-box" style="padding:20px 22px">
+      <div class="chart-title">抖加投入金额 vs 最终得分</div>
+      <div class="chart-sub">每个点=一位同学。横轴=投入抖加（元），纵轴=最终得分。红色虚线是整体趋势线。</div>
+      <div class="chart-tools">
+        <button class="btn active" onclick="switchBidView('scatter')">📊 散点+趋势线</button>
+        <button class="btn" onclick="switchBidView('rank')">🏆 按排名对比</button>
+      </div>
+      <div id="chartBidPoints" class="chart-container"></div>
+    </div>
+  </div>
+</section>
+
+<!-- ═══════ S12 策略对比 ═══════ -->
+<section class="slide bg-b" data-slide="11" style="background:var(--bg2)">
+  <div class="inner">
+    <div class="section-label">📊 12 · 差距一目了然</div>
+    <h2>保守派 vs 激进派：<br>将近一倍的差距</h2>
+    <p class="section-desc">左边看平均得分，右边看人数分布和收益占比。</p>
+    <div class="grid-2">
+      <div class="chart-box"><div class="chart-title">📊 三派平均得分对比</div><div class="chart-sub">保守派190分 vs 激进派98分</div><div id="chartStrategyBar" class="chart-container" style="height:340px"></div></div>
+      <div class="chart-box"><div class="chart-title">🥧 人数分布与得分占比</div><div class="chart-sub">65%的人选了激进，但总得分不到一半</div><div id="chartPie" class="chart-container" style="height:340px"></div></div>
+    </div>
+  </div>
+</section>
+
+<!-- ═══════ S13 赢家vs输家 ═══════ -->
+<section class="slide bg-b" data-slide="12">
+  <div class="inner">
+    <div class="section-label">⚖️ 13 · 天壤之别</div>
+    <h2>同样的"全押"策略，<br>结果差了2000倍</h2>
+    <p class="section-desc">簇状柱形图清晰对比：投了多少 vs 赚了多少 vs 还剩多少。</p>
+    <div class="chart-box" style="padding:20px 24px">
+      <div class="chart-title">🏆 激进派最极端的5位同学</div>
+      <div class="chart-sub">红色虚线=保守派均值190.6，蓝色虚线=激进派均值98.5。只有#15和#7跑赢了保守派。</div>
+      <div id="chartWinnerLoser" class="chart-container" style="height:410px"></div>
+    </div>
+  </div>
+</section>
+
+<!-- ═══════ S14 赢家通吃+翻盘 ═══════ -->
+<section class="slide bg-b" data-slide="13" style="background:var(--bg2)">
+  <div class="inner">
+    <div class="section-label">📉 14 · 核心观点</div>
+    <h2>"赢家通吃"的规则下，<br>少数人拿走了大部分蛋糕</h2>
+    <p class="section-desc">两个视角看清同一件事：不平等怎么产生的，输了之后有没有机会翻盘。</p>
+    <div class="card-insight" style="margin-bottom:12px"><div class="ci-icon">🏛️</div><div class="ci-title">观点一：赢家通吃</div><div class="ci-desc">排名<span class="hl">前10名的总得分</span>占全部29人总分的 <strong style="color:var(--gold);font-size:18px">58.7%</strong>，而<span class="hl-r">后10名的总得分</span>只占 <strong style="color:var(--text3);font-size:16px">16.8%</strong>。Gini系数0.35——一个小实验，已经制造出了接近国际警戒线的收入不平等。</div></div>
+    <div class="card-insight" style="background:linear-gradient(135deg,rgba(16,185,129,.05),rgba(167,139,250,.03))"><div class="ci-icon">🔄</div><div class="ci-title">观点二：输了之后能不能翻盘？关键在于你怎么选</div><div class="ci-desc">第一轮输了的人面临两个选择：<br><span style="display:inline-block;background:rgba(16,185,129,.08);padding:2px 10px;border-radius:6px;margin:2px">✅ 收手→全部翻盘，第二轮100分全额基础分</span><br><span style="display:inline-block;background:rgba(244,63,94,.08);padding:2px 10px;border-radius:6px;margin:2px">❌ 加码→平均只有35分，越输越多</span><br><strong style="color:var(--emerald)">及时止损才是翻盘的唯一途径</strong>，"再投点就能翻盘"往往让你输得更惨。</div></div>
+    <div class="grid-2" style="margin-top:8px">
+      <div class="chart-box"><div class="chart-title" style="font-size:13px">🏛️ 前/中/后三段得分占比</div><div id="chartGini" class="chart-container" style="height:280px"></div></div>
+      <div class="chart-box"><div class="chart-title" style="font-size:13px">🔄 不同选择→第二轮平均得分</div><div id="chartTransition" class="chart-container" style="height:280px"></div></div>
+    </div>
+  </div>
+</section>
+
+<!-- ═══════ S15 验证假设 NEW ═══════ -->
+<section class="slide bg-b" data-slide="14">
+  <div class="inner">
+    <div class="section-label">✅ 15 · 答案揭晓</div>
+    <h2>回到那四个假设——<br>我们的猜对了吗？</h2>
+    <p class="section-desc">还记得第5页的四个假设吗？现在来看答案。</p>
+    <div class="grid-2">
+      <div class="assumption-card"><div class="ac-num">假设 ①</div><div class="ac-statement">奖金越高，投入越高</div><div class="ac-result partial">❌ 部分成立，但反直觉</div><div class="ac-evidence">出价和得分的相关系数 r = -0.42——<span class="hl-r">实际是负相关</span>！投入越多的人，平均得分反而越低。奖金激励带来了更多的竞争，但没有带来更高的回报。</div></div>
+      <div class="assumption-card"><div class="ac-num">假设 ②</div><div class="ac-statement">风险偏好者投入更高</div><div class="ac-result pass">✅ 成立，但收益更差</div><div class="ac-evidence">19个激进派平均投入765元——确实比保守派高得多。但平均得分98.5分，远低于保守派的190.6分。<span class="hl">胆子大的人投入多，但亏得也多</span>。</div></div>
+      <div class="assumption-card"><div class="ac-num">假设 ③</div><div class="ac-statement">怕被别人比下去而多投</div><div class="ac-result partial">⚠️ 数据不充分</div><div class="ac-evidence">实验中缺乏"对他人投入预期"的精确测量数据。但从第二轮激进者比例高于第一轮的现象来看，<span class="hl">"竞争压力"可能确实助推了非理性投入</span>。</div></div>
+      <div class="assumption-card"><div class="ac-num">假设 ④</div><div class="ac-statement">出现"赢者诅咒"非理性行为</div><div class="ac-result pass">✅ 确实存在</div><div class="ac-evidence">#4、#5、#27等同学总投入999-1000元，收益仅0.2-50分。<span class="hl-r">他们的投入远远超过了任何可能的回报</span>——这就是"赢者诅咒"在现实中的活生生案例。</div></div>
+    </div>
+  </div>
+</section>
+
+<!-- ═══════ S16 六条发现 ═══════ -->
+<section class="slide bg-b" data-slide="15" style="background:var(--bg2)">
+  <div class="inner">
+    <div class="section-label">🔍 16 · 六句话总结</div>
+    <h2>这场比赛教会我们什么？</h2>
+    <p class="section-desc">六条核心发现，每一句都可以直接演讲时用。</p>
+    <div class="grid-3">
+      <div class="finding-card"><div class="fc-num">①</div><div class="fc-label">不投就是赢</div><div class="fc-desc">一分钱抖加没花的6个人，平均排名第6——比绝大多数疯狂投抖加的同学名次高。</div></div>
+      <div class="finding-card" style="border-color:rgba(245,158,11,.1)"><div class="fc-num" style="color:var(--gold);-webkit-text-fill-color:initial">②</div><div class="fc-label">输赢差2000倍</div><div class="fc-desc">都花了1000元投抖加，#15拿400分冠军，#27只得0.2分。赢了通吃，输了啥也没。</div></div>
+      <div class="finding-card" style="border-color:rgba(244,63,94,.1)"><div class="fc-num" style="color:var(--rose);-webkit-text-fill-color:initial">③</div><div class="fc-label">"捞回来"是陷阱</div><div class="fc-desc">第一轮输了、第二轮想捞回来的人几乎全部输得更惨。及时止损才是真聪明。</div></div>
+      <div class="finding-card" style="border-color:rgba(16,185,129,.1)"><div class="fc-num" style="color:var(--emerald);-webkit-text-fill-color:initial">④</div><div class="fc-label">先保底再冲刺</div><div class="fc-desc">第一轮不动、第二轮去赌的人平均160分。有保障的冒险才是最聪明的策略。</div></div>
+      <div class="finding-card" style="border-color:rgba(124,58,237,.1)"><div class="fc-num">⑤</div><div class="fc-label">差距比想象中大</div><div class="fc-desc">前3名得分总和是后3名的20倍。一个小实验就制造出了明显的不平等。</div></div>
+      <div class="finding-card" style="border-color:rgba(167,139,250,.1)"><div class="fc-num" style="color:var(--purple2);-webkit-text-fill-color:initial">⑥</div><div class="fc-label">运气比实力重要</div><div class="fc-desc">第一轮和第二轮成绩几乎不相关——每一轮都是重新洗牌，随机性很大。</div></div>
+    </div>
+  </div>
+</section>
+
+<!-- ═══════ S17 经济学解释 ═══════ -->
+<section class="slide bg-b" data-slide="16">
+  <div class="inner">
+    <div class="section-label">📖 17 · 不止是实验</div>
+    <h2>这些现象，每天都在你身边发生</h2>
+    <p class="section-desc">这些不是课本上枯燥的理论——它们就在你的生活里。</p>
+    <div class="grid-2">
+      <div class="text-card" style="border-left:3px solid var(--purple)"><div class="tc-title">🎭 赢者诅咒 · "抢到就是赚到？"</div><p>拍卖会上赢家往往出价过高。<span class="hl">实验中</span>：#27砸了999元得0.2分。<span class="hl-g">生活里</span>：辛苦竞标拿下的项目不赚钱、争来的职位压力大于回报。赢了竞价，输了人生。</p></div>
+      <div class="text-card" style="border-left:3px solid var(--rose)"><div class="tc-title">🔄 沉没成本 · "都投了这么多了"</div><p>第一轮输了不甘心加倍——输更多。收手的全部翻盘。<span class="hl-g">生活里</span>：股票越跌越补、烂项目越亏越投。学会认输比死磕更重要。</p></div>
+    </div>
+    <div class="grid-2">
+      <div class="text-card" style="border-left:3px solid var(--gold)"><div class="tc-title">🧠 过度自信 · "我觉得我能赢"</div><p>65%的人选了"全押"，但89%得分低于保守派平均分。人人都觉得自己是天选之子——但冠军只有一个。</p></div>
+      <div class="text-card" style="border-left:3px solid var(--emerald)"><div class="tc-title">🏆 赢者通吃的世界</div><p>职场晋升、创业融资、选秀比赛——规则一样。第一名拿走几乎所有，其他人什么也没有。<span class="hl">问题是</span>：理性选择可能恰恰是——<span class="hl-g">不参加</span>。</p></div>
+    </div>
+  </div>
+</section>
+
+<!-- ═══════ S18 给同学的建议 NEW ═══════ -->
+<section class="slide bg-b" data-slide="17" style="background:var(--bg2)">
+  <div class="inner">
+    <div class="section-label">💡 18 · 从实验到行动</div>
+    <h2>送给你三条可执行的建议</h2>
+    <p class="section-desc">实验结束了，但这些道理你可以带走。</p>
+    <div class="grid-3">
+      <div class="advice-card"><div class="ac-icon">🛡️</div><div class="ac-title" style="color:var(--emerald)">不是所有战场都需要你上场</div><div class="ac-desc">盲目进场不如先看清局势。有时候"不参与"就是最好的决策——把精力留给你真正有优势的战场。</div></div>
+      <div class="advice-card"><div class="ac-icon">✂️</div><div class="ac-title" style="color:var(--gold)">学会止损比死磕更重要</div><div class="ac-desc">"再投点就能翻盘"——这是最大的陷阱。认输不是认怂，是聪明。实验证明：及时收手的人全部翻盘了。</div></div>
+      <div class="advice-card"><div class="ac-icon">⚡</div><div class="ac-title" style="color:var(--purple2)">先不败，再求胜</div><div class="ac-desc">先把基础打牢，再用输得起的筹码去博超额收益。有保障的冒险，才是最聪明的冒险——#19号就是最好的例子。</div></div>
+    </div>
+  </div>
+</section>
+
+<!-- ═══════ S19 终页 ═══════ -->
+<section class="slide hero bg-b" data-slide="18">
+  <div class="inner" style="align-items:center;text-align:center">
+    <div class="tag" style="margin-bottom:12px">🙏 感谢聆听</div>
+    <h1>感谢垂听，<br>敬请批评指正</h1>
+    <p class="sub" style="margin:16px auto 24px;text-align:center">希望这个小实验能让大家在面对竞争时，多一份理性与清醒。</p>
+    <div style="margin-top:20px;color:var(--text3);font-size:14px">
+      <p>经济与贸易综合实验 · 第一组大袋鼠</p>
+      <p style="margin-top:4px;color:var(--text3)">指导老师：朱永华老师 · 2026年5月</p>
+    </div>
+  </div>
+</section>
+
+</div></div>
+
+<div class="slide-nav">
+  <button class="nav-arrow" id="prevBtn" onclick="prevSlide()">‹</button>
+  <div class="page-indicator" id="pageIndicator"></div>
+  <div class="dots" id="dotsContainer"></div>
+  <div class="nav-label" id="navLabel"></div>
+  <button class="nav-arrow" id="nextBtn" onclick="nextSlide()">›</button>
+</div>
+
+<script>
+const totalSlides=document.querySelectorAll('.slide').length;
+let cur=0;
+const slideLabels=['封面','生活里的赢者通吃','实验核心','得分公式解密','四个假设','全员数据表','三种策略','#1号案例','#19号案例','#27号案例','投入vs得分','策略对比','赢家vs输家','赢家通吃+翻盘','验证假设','六条发现','经济学解释','给同学的建议','感谢垂听'];
+function goTo(i){if(i<0)i=0;if(i>=totalSlides)i=totalSlides-1;cur=i;
+  document.getElementById('slidesTrack').style.transform=`translateX(-${i*100}vw)`;
+  document.getElementById('prevBtn').disabled=i===0;document.getElementById('nextBtn').disabled=i===totalSlides-1;
+  document.getElementById('pageIndicator').textContent=`${i+1}/${totalSlides}`;
+  document.getElementById('navLabel').textContent=slideLabels[i]||'';
+  document.querySelectorAll('.dot').forEach((d,j)=>d.classList.toggle('active',j===i));
+  // Animation: remove from all, add to current
+  document.querySelectorAll('.slide').forEach(s=>s.classList.remove('anim-in'));
+  requestAnimationFrame(()=>{document.querySelectorAll('.slide')[i]?.classList.add('anim-in')});
+  setTimeout(()=>{document.querySelectorAll('.chart-container').forEach(c=>{const e=echarts.getInstanceByDom(c);if(e)e.resize()})},350);
+}
+function nextSlide(){goTo(cur+1)}function prevSlide(){goTo(cur-1)}
+const dc=document.getElementById('dotsContainer');
+for(let i=0;i<totalSlides;i++){const d=document.createElement('button');d.className='dot'+(i===0?' active':'');d.onclick=(()=>goTo(i));d.setAttribute('aria-label',`第${i+1}页`);dc.appendChild(d)}
+document.addEventListener('keydown',e=>{if(e.key==='ArrowRight'||e.key==='ArrowDown'){e.preventDefault();nextSlide()}if(e.key==='ArrowLeft'||e.key==='ArrowUp'){e.preventDefault();prevSlide()}});
+goTo(0);
+// Animate first slide after a brief delay for DOM readiness
+setTimeout(()=>{document.querySelector('.slide')?.classList.add('anim-in')},100);
+
+const rawData=[
+[1,'#15',500,350,500,50,1000,400,0,'全押·R1搏中'],[2,'#7',500,170,500,50,1000,220,0,'全押·R1搏中'],
+[3,'#1',0,100,0,100,0,200,1000,'全程不投'],[3,'#19',0,100,500,100,500,200,500,'R1不动→R2搏中'],
+[5,'#12',0,100,2,99.6,2,199.6,998,'几乎不投'],[6,'#11',20,96,10,98,30,194,970,'很少投'],
+[7,'#30',2,99.6,69,86.2,71,185.8,929,'很少投'],[8,'#14',0,100,80,84,80,184,920,'很少投'],
+[9,'#17',0,100,100,80,100,180,900,'少量投'],[10,'#22',1,99.8,490,52,491,151.8,509,'R1不动→R2全押'],
+[11,'#13',0,100,500,50,500,150,500,'R1不动→R2全押'],[11,'#16',0,100,250,50,250,150,750,'R1不动→R2中等'],
+[11,'#18',0,100,500,50,500,150,500,'R1不动→R2全押'],[11,'#28',0,100,500,50,500,150,500,'R1不动→R2全押'],
+[15,'#8',0,100,300,40,300,140,700,'R1不动→R2中等'],[16,'#23',410,18,0,100,410,118,590,'R1激进→R2收手'],
+[17,'#2',500,0,0,100,500,100,500,'R1亏损→R2保底'],[17,'#9',500,0,0,100,500,100,500,'R1亏损→R2保底'],
+[17,'#10',500,0,0,100,500,100,500,'R1亏损→R2保底'],[17,'#24',500,0,0,100,500,100,500,'R1亏损→R2保底'],
+[21,'#3',500,0,200,60,700,60,300,'激进亏损'],[22,'#5',500,0,500,50,1000,50,0,'全押亏损'],
+[22,'#26',500,0,500,50,1000,50,0,'全押亏损'],[24,'#29',450,10,350,30,800,40,200,'激进亏损'],
+[25,'#6',500,0,330,34,830,34,170,'激进亏损'],[26,'#25',410,18,450,10,860,28,140,'激进亏损'],
+[27,'#4',500,0,500,20,1000,20,0,'全押亏损'],[28,'#20',400,20,500,0,900,20,100,'激进亏损'],
+[29,'#27',500,0,499,0.2,999,0.2,1,'全押·近零分'],
+];
+let ss={col:0,asc:true};function sc(b){return b<=100?'sc':b<500?'sm':'sa'}
+function renderTable(d){const b=document.getElementById('tableBody');
+b.innerHTML=d.map(r=>`<tr><td>${r[0]}</td><td>${r[1]}</td><td class="${sc(r[6])}">${r[2]}</td><td>${r[3]}</td><td>${r[4]}</td><td>${r[5]}</td><td class="${sc(r[6])}">${r[6]}</td><td><strong>${r[7]}</strong></td><td>${r[8]}</td><td style="font-size:12px;color:var(--text2)">${r[9]}</td></tr>`).join('');
+document.getElementById('tableCount').textContent=`${d.length}名同学`;}
+function sortTable(c){ss.asc=ss.col===c?!ss.asc:true;ss.col=c;const d=[...rawData].sort((a,b)=>{const va=typeof a[c]==='number'?a[c]:parseFloat(a[c]);const vb=typeof b[c]==='number'?b[c]:parseFloat(b[c]);return ss.asc?va-vb:vb-va});renderTable(d)}
+renderTable(rawData);
+
+let ci=false;
+function initCharts(){if(ci)return;ci=true;
+  renderBidChart('scatter');
+  const c2=echarts.init(document.getElementById('chartStrategyBar'));
+  c2.setOption({tooltip:{trigger:'axis',axisPointer:{type:'shadow'},formatter:p=>`${p[0].name}<br>平均得分: ${p[0].value}分<br>${['保守派6人','聪明派5人','激进派8人'][p[0].dataIndex]}`},xAxis:{type:'category',data:['🛡️ 保守派','⚡ 聪明派','💥 激进派'],axisLabel:{color:'#94a3b8',fontSize:12},axisLine:{lineStyle:{color:'rgba(255,255,255,.06)'}}},yAxis:{type:'value',name:'平均得分',nameTextStyle:{color:'#94a3b8',fontSize:12},splitLine:{lineStyle:{color:'rgba(255,255,255,.03)'}},axisLabel:{color:'#94a3b8',fontSize:11},axisLine:{lineStyle:{color:'rgba(255,255,255,.06)'}},min:0},series:[{type:'bar',data:[{value:190.6,itemStyle:{color:'#10b981',borderRadius:[6,6,0,0]}},{value:160.4,itemStyle:{color:'#f59e0b',borderRadius:[6,6,0,0]}},{value:98.5,itemStyle:{color:'#f43f5e',borderRadius:[6,6,0,0]}}],barWidth:'55%',label:{show:true,position:'top',color:'#f1f5f9',fontWeight:'bold',fontSize:13,formatter:p=>`${p.value}分`}}],grid:{left:50,right:16,top:20,bottom:30},backgroundColor:'transparent'});
+  window.addEventListener('resize',()=>c2.resize());
+  const c3=echarts.init(document.getElementById('chartPie'));
+  c3.setOption({tooltip:{trigger:'item',formatter:p=>`${p.name}<br>${p.value}人(${p.percent}%)<br>平均:${[190.6,160.4,98.5][p.dataIndex]}分`},series:[{type:'pie',radius:['36%','66%'],center:['50%','55%'],avoidLabelOverlap:true,itemStyle:{borderRadius:6,borderColor:'rgba(9,8,15,.8)',borderWidth:2},label:{show:true,formatter:'{b}\n{c}人({d}%)',color:'#94a3b8',fontSize:11},data:[{value:6,name:'保守派',itemStyle:{color:'#10b981'}},{value:5,name:'聪明派',itemStyle:{color:'#f59e0b'}},{value:8,name:'激进派',itemStyle:{color:'#f43f5e'}}]}],backgroundColor:'transparent'});
+  window.addEventListener('resize',()=>c3.resize());
+  const c4=echarts.init(document.getElementById('chartWinnerLoser'));
+  c4.setOption({tooltip:{trigger:'axis',axisPointer:{type:'shadow'},formatter:p=>{const n=['#5','#4','#27','#7','#15'];return`${n[p[0].dataIndex]}<br>抖加:${[1000,1000,999,1000,1000][p[0].dataIndex]}元<br>得分:${p[0].value}分${p[1]?`<br>剩余:${p[1].value}元`:''}`}},legend:{data:['抖加投入','最终得分','预算剩余'],textStyle:{color:'#94a3b8',fontSize:11},top:0,right:0},xAxis:{type:'category',data:['#5(输)','#4(输)','#27(输)','#7(赢)','#15(赢)'],axisLabel:{color:'#94a3b8',fontSize:12},axisLine:{lineStyle:{color:'rgba(255,255,255,.06)'}}},yAxis:{type:'value',name:'金额/分数',nameTextStyle:{color:'#94a3b8',fontSize:12},splitLine:{lineStyle:{color:'rgba(255,255,255,.03)'}},axisLabel:{color:'#94a3b8',fontSize:11},axisLine:{lineStyle:{color:'rgba(255,255,255,.06)'}}},series:[{name:'抖加投入',type:'bar',data:[1000,1000,999,1000,1000],itemStyle:{color:'rgba(124,58,237,.4)',borderRadius:[4,4,0,0]},barWidth:'22%'},{name:'最终得分',type:'bar',data:[{value:50,itemStyle:{color:'#f43f5e',borderRadius:[4,4,0,0]}},{value:20,itemStyle:{color:'#f43f5e',borderRadius:[4,4,0,0]}},{value:0.2,itemStyle:{color:'#e11d48',borderRadius:[4,4,0,0]}},{value:220,itemStyle:{color:'#10b981',borderRadius:[4,4,0,0]}},{value:400,itemStyle:{color:'#f59e0b',borderRadius:[4,4,0,0]}}],barWidth:'22%'},{name:'预算剩余',type:'bar',data:[0,0,1,0,0],itemStyle:{color:'rgba(148,163,184,.25)',borderRadius:[4,4,0,0]},barWidth:'22%'}],grid:{left:55,right:30,top:35,bottom:28},backgroundColor:'transparent'});
+  window.addEventListener('resize',()=>c4.resize());
+  const sp=rawData.map(r=>r[7]).sort((a,b)=>b-a),t10=sp.slice(0,10).reduce((s,v)=>s+v,0),m10=sp.slice(10,19).reduce((s,v)=>s+v,0),b10=sp.slice(19).reduce((s,v)=>s+v,0),tot=sp.reduce((s,v)=>s+v,0);
+  const c5=echarts.init(document.getElementById('chartGini'));
+  c5.setOption({tooltip:{trigger:'axis',axisPointer:{type:'shadow'},formatter:p=>`${p[0].name}<br>总得分:${p[0].value.toFixed(0)}分(${(p[0].value/tot*100).toFixed(1)}%)`},xAxis:{type:'category',data:['前10名\n(得分最高)','中间9人','后10名\n(得分最低)'],axisLabel:{color:'#94a3b8',fontSize:11},axisLine:{lineStyle:{color:'rgba(255,255,255,.06)'}}},yAxis:{type:'value',name:'总得分',nameTextStyle:{color:'#94a3b8',fontSize:12},splitLine:{lineStyle:{color:'rgba(255,255,255,.03)'}},axisLabel:{color:'#94a3b8',fontSize:11},axisLine:{lineStyle:{color:'rgba(255,255,255,.06)'}}},series:[{type:'bar',data:[{value:t10,itemStyle:{color:'#7c3aed',borderRadius:[6,6,0,0]}},{value:m10,itemStyle:{color:'#a78bfa',borderRadius:[6,6,0,0]}},{value:b10,itemStyle:{color:'#f43f5e',borderRadius:[6,6,0,0]}}],barWidth:'50%',label:{show:true,position:'top',color:'#f1f5f9',fontWeight:'bold',fontSize:12,formatter:p=>`${(p.value/tot*100).toFixed(1)}%`}}],grid:{left:50,right:16,top:20,bottom:30},backgroundColor:'transparent'});
+  window.addEventListener('resize',()=>c5.resize());
+  const c6=echarts.init(document.getElementById('chartTransition'));
+  c6.setOption({tooltip:{trigger:'axis',axisPointer:{type:'shadow'},formatter:p=>`${p[0].name}<br>第二轮均分:${p[0].value}分`},xAxis:{type:'category',data:['及时收手\n(激进→保守)','一直保守\n(保守→保守)','继续加码\n(激进→激进)'],axisLabel:{color:'#94a3b8',fontSize:11},axisLine:{lineStyle:{color:'rgba(255,255,255,.06)'}}},yAxis:{type:'value',name:'第二轮均分',nameTextStyle:{color:'#94a3b8',fontSize:12},min:0,max:120,splitLine:{lineStyle:{color:'rgba(255,255,255,.03)'}},axisLabel:{color:'#94a3b8',fontSize:11},axisLine:{lineStyle:{color:'rgba(255,255,255,.06)'}}},series:[{type:'bar',data:[{value:100,itemStyle:{color:'#10b981',borderRadius:[6,6,0,0]}},{value:99.7,itemStyle:{color:'#10b981',borderRadius:[6,6,0,0]}},{value:35.1,itemStyle:{color:'#f43f5e',borderRadius:[6,6,0,0]}}],barWidth:'50%',label:{show:true,position:'top',color:'#f1f5f9',fontWeight:'bold',fontSize:13,formatter:p=>`${p.value}分`}}],grid:{left:46,right:16,top:16,bottom:30},backgroundColor:'transparent'});
+  window.addEventListener('resize',()=>c6.resize());
+}
+function renderBidChart(view){
+  const dom=document.getElementById('chartBidPoints'),ch=echarts.init(dom);
+  if(view==='scatter'){
+    const bd=rawData.map(r=>[r[6],r[7]]),n=bd.length,sx=bd.reduce((s,p)=>s+p[0],0),sy=bd.reduce((s,p)=>s+p[1],0),sxy=bd.reduce((s,p)=>s+p[0]*p[1],0),sx2=bd.reduce((s,p)=>s+p[0]*p[0],0);
+    const sl=(n*sxy-sx*sy)/(n*sx2-sx*sx),it=(sy-sl*sx)/n;
+    ch.setOption({tooltip:{trigger:'item',formatter:p=>p.seriesName==='趋势线'?'趋势线:投入越多得分越低\n相关系数r=-0.42':`${rawData.find(r=>r[6]===p.value[0]&&r[7]===p.value[1])?.[1]||''}<br>抖加:${p.value[0]}元<br>得分:${p.value[1].toFixed(1)}分`},xAxis:{name:'抖加投入（元）',nameTextStyle:{color:'#94a3b8',fontSize:12,padding:[18,0,0,0]},type:'value',min:0,max:1050,splitLine:{lineStyle:{color:'rgba(255,255,255,.03)'}},axisLine:{lineStyle:{color:'rgba(255,255,255,.06)'}},axisLabel:{color:'#94a3b8',fontSize:11}},yAxis:{name:'最终得分',nameTextStyle:{color:'#94a3b8',fontSize:12,padding:[0,26,0,0]},type:'value',splitLine:{lineStyle:{color:'rgba(255,255,255,.03)'}},axisLine:{lineStyle:{color:'rgba(255,255,255,.06)'}},axisLabel:{color:'#94a3b8',fontSize:11}},grid:{left:64,right:26,top:16,bottom:48},backgroundColor:'transparent',series:[{name:'每位同学',type:'scatter',data:bd,symbolSize:11,itemStyle:{color:'#7c3aed',opacity:.75},emphasis:{itemStyle:{color:'#f59e0b',borderColor:'#fff',borderWidth:2,shadowBlur:10,shadowColor:'rgba(245,158,11,.4)'}}},{name:'趋势线',type:'line',data:[[0,it],[1000,sl*1000+it]],lineStyle:{color:'#f43f5e',width:2,type:'dashed'},symbol:'none',label:{show:true,formatter:'r=-0.42\n越投分越低',color:'#f43f5e',fontSize:12,fontWeight:'bold',position:'bottom'}}]});
+  } else {
+    const sd=[...rawData].sort((a,b)=>a[0]-b[0]);
+    ch.setOption({tooltip:{trigger:'axis',formatter:p=>{const r=sd[p[0].dataIndex];return`${r[1]}号·排名第${r[0]}<br>抖加:${r[6]}元<br>得分:${r[7]}分`}},legend:{data:['抖加投入','最终得分'],textStyle:{color:'#94a3b8',fontSize:11},top:0,right:0},xAxis:{type:'category',data:sd.map(r=>r[1]),axisLabel:{color:'#94a3b8',fontSize:10,rotate:45},axisLine:{lineStyle:{color:'rgba(255,255,255,.06)'}}},yAxis:{type:'value',name:'金额/得分',nameTextStyle:{color:'#94a3b8',fontSize:12},splitLine:{lineStyle:{color:'rgba(255,255,255,.03)'}},axisLabel:{color:'#94a3b8',fontSize:11},axisLine:{lineStyle:{color:'rgba(255,255,255,.06)'}}},series:[{name:'抖加投入',type:'bar',data:sd.map(r=>r[6]),itemStyle:{color:'rgba(124,58,237,.35)',borderRadius:[4,4,0,0]},barWidth:'32%'},{name:'最终得分',type:'bar',data:sd.map(r=>r[7]),itemStyle:{color:'#f59e0b',borderRadius:[4,4,0,0]},barWidth:'32%'}],grid:{left:50,right:26,top:30,bottom:48},backgroundColor:'transparent'});
+  }
+  window.addEventListener('resize',()=>ch.resize());
+}
+function switchBidView(view){document.querySelectorAll('.chart-tools .btn').forEach(b=>b.classList.remove('active'));document.querySelectorAll('.chart-tools .btn').forEach(b=>{if(view==='scatter'&&b.textContent.includes('散点'))b.classList.add('active');if(view==='rank'&&b.textContent.includes('排名'))b.classList.add('active')});renderBidChart(view)}
+setTimeout(initCharts,400);
+</script>
+</body>
+</html>
